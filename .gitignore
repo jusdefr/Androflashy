@@ -1,0 +1,18 @@
+# Artefacts locaux de compilation / émulation
+build/
+run/*.img
+run/*.log
+run/*.sock
+run/*.ppm
+run/*.png
+*.o
+*.elf
+*.bin
+*.iso
+
+# Dépendances temporaires téléchargées uniquement pour cette session
+tools/apt/
+tools/pkg/
+tools/root/
+__pycache__/
+*.pyc
