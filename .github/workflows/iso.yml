@@ -8,6 +8,11 @@ on:
     branches: [ main ]
     tags: [ 'v*' ]
   workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tag de la release à créer avec le .iso (ex: v0.1.0)'
+        required: true
+        default: 'v0.1.0'
 
 permissions:
   contents: write
@@ -50,7 +55,7 @@ jobs:
 
   release:
     needs: build
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Télécharger les artefacts du build
@@ -59,9 +64,18 @@ jobs:
           name: nexos-iso
           path: dist
 
-      - name: Attacher à la release du tag
+      - name: Créer la release du tag et attacher les images
         uses: softprops/action-gh-release@v2
         with:
+          # sur push de tag : github.ref_name est le tag ; sur dispatch : l'input
+          tag_name: ${{ github.event.inputs.tag_name || github.ref_name }}
+          name: NexOS ${{ github.event.inputs.tag_name || github.ref_name }}
+          body: |
+            Images bootables construites automatiquement.
+            - `nexos.iso` : CD-ROM amorçable (El Torito, emulation disquette 1,44 Mo)
+            - `nexos.img` : disquette brute 1,44 Mo
+            QEMU : `qemu-system-i386 -machine pc -m 32M -cdrom nexos.iso -boot d`
+            ou : `qemu-system-i386 -machine pc -m 32M -drive file=nexos.img,format=raw,if=floppy -boot a`
           files: |
             dist/nexos.iso
             dist/nexos.img
