@@ -9,6 +9,7 @@ run/*.png
 *.elf
 *.bin
 *.iso
+!releases/nexos.iso
 
 # Dépendances temporaires téléchargées uniquement pour cette session
 tools/apt/
