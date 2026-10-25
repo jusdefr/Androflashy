@@ -10,8 +10,9 @@
 - Console VGA texte, affichage du logo, journal noyau sur UART COM1 et kernel panic.
 - Table IDT, exceptions CPU, PIC 8259 et interruption logicielle `int 0x80`.
 - PIT 100 Hz, clavier PS/2 IRQ1 avec Shift/Caps Lock et buffer circulaire.
-- Petit allocateur noyau statique (64 KiB) avec fusion des blocs libérés.
-- Shell interactif actif en ring 0 et tick PIT ; pas encore de commutation de contexte ni de processus.
+- Souris PS/2 IRQ12 : curseur, clics, déplacement/redimensionnement des fenêtres.
+- Bureau graphique VBE 32 bpp : fenêtres déplaçables (barre de titre), redimensionnables (bords, bas et coin bas-droit, bornées), maximisées/restaurées par double-clic sur le titre ; barre des tâches, menu Démarrer, curseur souris.
+- Applications embarquées dans le noyau : NexBrowser (pages hors ligne), Terminal, Paramètres (thème en direct), Sécurité (états réels). Repli automatique en console texte si le framebuffer VBE est absent.
 - Build debug/release, image raw et tests d’image/démarrage dans QEMU.
 
 Les détails et les fonctions non implémentées sont listés dans [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). L’objectif est un **prototype d’apprentissage**, pas un système sécurisé ou compatible Windows.
@@ -25,8 +26,11 @@ make debug        # noyau -O0, symboles de debug
 make release      # image optimisée -O2 (valeur par défaut)
 make test         # valide la signature, ELF et démarre le vrai noyau dans QEMU
 make test-shell   # injecte « about » au clavier QEMU et vérifie la réponse
+make iso          # construit build/nexos.iso (El Torito, amorçable en CD-ROM)
 make clean
 ```
+
+`make iso` exige un outil ISO : `xorriso`, `genisoimage` ou `mkisofs` (le Makefile détecte le premier présent). L'ISO embarque la disquette de 1,44 Mo en **émulation disquette El Torito** : le BIOS mappe l'image en lecteur A: et le chargeur de démarrage s'exécute comme sur un vrai floppy. Un workflow GitHub Actions (`.github/workflows/iso.yml`) construit `nexos.iso` à chaque push sur `main` (artefact `nexos-iso`) et l'attache automatiquement aux releases de tags `v*`.
 
 Le résultat généré est `build/nexos.img`. QEMU doit être installé pour `make test`; on peut aussi construire sans QEMU avec `make release` puis vérifier l’image avec `python3 tests/test_image.py build/nexos.img build/kernel.elf`.
 
@@ -75,6 +79,6 @@ kernel/                 Entrée, noyau C, mémoire, interruptions, scheduler, sh
 
 ## Applications, .exe, DLL et MSI
 
-Aucune application utilisateur, GUI ou machine virtuelle Windows n’est incluse dans cette version. En particulier, `.exe`, `.dll`, `.msi`, `.sys`, `.bat`, `.lnk`, NexFS, C#, Store, réseau, audio, navigateur, et gestionnaire de fenêtres sont **non implémentés** ; ce README ne fournit pas d’exemples factices. C’est une base de noyau amorçable à étendre.
+Aucune application utilisateur tierce, machine virtuelle Windows ni compatibilité Windows n’est incluse dans cette version. En partie, les `.exe`, `.dll`, `.msi`, `.sys`, `.bat`, `.lnk`, NexFS, C#, Store, réseau, audio et pilotes multimédia restent **non implémentés** ; ce README ne fournit pas d’exemples factices. Les seules applications disponibles sont natives et embarquées dans le noyau (bureau VBE : NexBrowser hors ligne, Terminal, Paramètres, Sécurité) ; le navigateur n’accède qu’aux pages embarquées, aucune pile réseau ni TLS n’est présente. C’est une base de noyau amorçable à étendre.
 
 Pour la suite détaillée des couches nécessaires, voir [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).

@@ -55,4 +55,5 @@ void gdt_flush(const descriptor_ptr_t *ptr);
 void cpu_halt(void);
 void cpu_enable_interrupts(void);
 void cpu_disable_interrupts(void);
+extern const uint8_t font8x16[256][16];
 #endif

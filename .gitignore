@@ -14,5 +14,7 @@ run/*.png
 tools/apt/
 tools/pkg/
 tools/root/
+tools/usr/
+artifacts/
 __pycache__/
 *.pyc

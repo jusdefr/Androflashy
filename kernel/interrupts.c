@@ -1,4 +1,5 @@
 #include "kernel.h"
+#include "../drivers/mouse.h"
 
 extern void isr0(void); extern void isr1(void); extern void isr2(void); extern void isr3(void);
 extern void isr4(void); extern void isr5(void); extern void isr6(void); extern void isr7(void);
@@ -59,6 +60,7 @@ void isr_handler(registers_t *r) {
         uint8_t irq = (uint8_t)(r->int_no - IRQ_BASE);
         if (irq == 0) timer_advance();
         else if (irq == 1) keyboard_irq();
+        else if (irq == 12) mouse_irq();
         if (irq >= 8) outb(0xA0, 0x20);
         outb(0x20, 0x20);
     }

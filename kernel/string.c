@@ -28,3 +28,12 @@ char *strcpy(char *dst, const char *src) {
     return out;
 }
 char *strcat(char *dst, const char *src) { strcpy(dst + strlen(dst), src); return dst; }
+char *strstr(const char *hay, const char *needle) {
+    if (!*needle) return (char *)hay;
+    for (; *hay; ++hay) {
+        const char *h = hay, *n = needle;
+        while (*h && *n && *h == *n) { ++h; ++n; }
+        if (!*n) return (char *)hay;
+    }
+    return NULL;
+}

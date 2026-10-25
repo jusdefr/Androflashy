@@ -1,8 +1,17 @@
 #include "kernel.h"
+#include "bootinfo.h"
+#include "desktop.h"
+#include "gfx.h"
+#include "theme.h"
+#include "../drivers/mouse.h"
 
-static void serial_boot_status(const char *text) { serial_write("[NexOS/INFO] "); serial_write(text); serial_write("\r\n"); }
+static bootinfo_t *const bi = (bootinfo_t *)BOOTINFO_ADDR;
 
-static void shell_task(void) { shell_run(); }
+static void serial_boot_status(const char *text) {
+    serial_write("[NexOS/INFO] ");
+    serial_write(text);
+    serial_write("\r\n");
+}
 
 void kmain(void) {
     serial_init();
@@ -10,7 +19,7 @@ void kmain(void) {
     console_clear();
     console_write("  _   _           ___  ____\n");
     console_write(" | \\ | | _____  _/ _ \\/ ___|\n");
-    console_write(" |  \\| |/ _ \\ / / | \\___ \\n");
+    console_write(" |  \\| |/ _ \\ / / | \\___ \\\n");
     console_write(" | |\\  |  __/>  <| |_| |___) |\n");
     console_write(" |_| \\_|\\___/_/\\_\\___/|____/\n\n");
     console_set_color(0x0B, 0);
@@ -25,10 +34,20 @@ void kmain(void) {
     keyboard_init();
     pit_init(100);
     scheduler_init();
-
-    klog("INFO", "noyau pret ; clavier PS/2 actif");
     serial_boot_status("tache shell prete");
+
+    if (gfx_init(bi)) {
+        /* Chemin graphique : framebuffer VBE, bureau fenêtré, souris PS/2. */
+        console_write("  framebuffer VBE 32 bpp actif\n");
+        theme_init();
+        mouse_init();
+        cpu_enable_interrupts();
+        klog("INFO", "bureau graphique lance (VBE)");
+        desktop_run();
+        kernel_panic("desktop_run ne devrait pas revenir");
+    }
+    klog("INFO", "mode texte : clavier PS/2, shell diagnostique");
     cpu_enable_interrupts();
-    shell_task();
+    shell_run();
     kernel_panic("shell_run ne devrait pas revenir");
 }

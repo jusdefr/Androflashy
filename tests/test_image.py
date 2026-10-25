@@ -39,7 +39,7 @@ def main() -> None:
     check(bool(loaded), "au moins un segment ELF chargeable")
     for _, vaddr, _, filesz, memsz in loaded:
         check(memsz >= filesz, "BSS compris dans la memoire allouee")
-        check(vaddr + filesz <= 0x10000 + 51200, "noyau charge sur les 100 secteurs du bootloader")
+        check(vaddr + filesz <= 0x10000 + 153600, "noyau charge sur les 300 secteurs du chargeur")
     print("Image NexOS validee.")
 
 

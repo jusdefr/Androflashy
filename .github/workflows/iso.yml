@@ -1,0 +1,67 @@
+# NexOS : construction de l'image ISO amorçable sur GitHub Actions.
+# - à chaque push sur main : build + validation + artefact nexos-iso
+# - à chaque tag v* : attache nexos.iso et nexos.img à la release GitHub
+name: build-iso
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Installer nasm et xorriso
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends nasm xorriso
+
+      - name: Construire l'image disquette
+        run: make release
+
+      - name: Valider l'image (tests hors QEMU)
+        run: python3 tests/test_image.py build/nexos.img build/kernel.elf
+
+      - name: Construire l'ISO amorçable (El Torito, émulation disquette)
+        run: make iso
+
+      - name: Vérifier l'ISO
+        run: |
+          test -f build/nexos.iso
+          stat -c '%n %s octets' build/nexos.iso
+          file build/nexos.iso || true
+
+      - name: Publier l'artefact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nexos-iso
+          path: |
+            build/nexos.iso
+            build/nexos.img
+          if-no-files-found: error
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Télécharger les artefacts du build
+        uses: actions/download-artifact@v4
+        with:
+          name: nexos-iso
+          path: dist
+
+      - name: Attacher à la release du tag
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/nexos.iso
+            dist/nexos.img
