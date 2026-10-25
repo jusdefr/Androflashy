@@ -60,8 +60,12 @@ $(BUILD)/iso/nexos.img: $(BUILD)/nexos.img
 	cp $< $@
 
 $(BUILD)/nexos.iso: $(BUILD)/iso/nexos.img
-	@test -x "$(MKISOFS)" || (echo 'Aucun outil ISO (xorriso/genisoimage/mkisofs). Installe un des trois.' >&2; exit 1)
+ifeq ($(MKISOFS),)
+	@test -d .venv_pip/pycdlib || python3 -m pip install --target .venv_pip pycdlib
+	PYTHONPATH=.venv_pip python3 tools/make_iso.py $(BUILD)/iso/nexos.img $@
+else
 	$(MKISOFS) $(MKISOFS_FLAGS) -o $@ -b nexos.img -c boot.cat -J -R -V NEXOS $(BUILD)/iso
+endif
 
 iso: release
 	$(MAKE) $(BUILD)/nexos.iso

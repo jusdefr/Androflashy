@@ -30,7 +30,7 @@ make iso          # construit build/nexos.iso (El Torito, amorçable en CD-ROM)
 make clean
 ```
 
-`make iso` exige un outil ISO : `xorriso`, `genisoimage` ou `mkisofs` (le Makefile détecte le premier présent). L'ISO embarque la disquette de 1,44 Mo en **émulation disquette El Torito** : le BIOS mappe l'image en lecteur A: et le chargeur de démarrage s'exécute comme sur un vrai floppy. Un workflow GitHub Actions (`.github/workflows/iso.yml`) construit `nexos.iso` à chaque push sur `main` (artefact `nexos-iso`) et l'attache automatiquement aux releases de tags `v*`.
+`make iso` utilise le premier des outils ISO `xorriso`, `genisoimage` ou `mkisofs` ; si aucun n'est présent, il bascule sur le script `tools/make_iso.py` (pycdlib ; `pip install --target .venv_pip pycdlib` installé automatiquement). L'ISO embarque la disquette de 1,44 Mo en **émulation disquette El Torito** : le BIOS mappe l'image en lecteur A: et le chargeur de démarrage s'exécute comme sur un vrai floppy. Un workflow GitHub Actions (`.github/workflows/iso.yml`) construit `nexos.iso` à chaque push sur `main` (artefact `nexos-iso`) ; il crée aussi la release GitHub avec `nexos.iso` + `nexos.img` en pièces jointes pour un tag `v*` ou un lancement manuel (Actions → build-iso → Run workflow → nom du tag).
 
 Le résultat généré est `build/nexos.img`. QEMU doit être installé pour `make test`; on peut aussi construire sans QEMU avec `make release` puis vérifier l’image avec `python3 tests/test_image.py build/nexos.img build/kernel.elf`.
 

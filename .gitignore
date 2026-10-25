@@ -15,6 +15,7 @@ tools/apt/
 tools/pkg/
 tools/root/
 tools/usr/
+.venv_pip/
 artifacts/
 __pycache__/
 *.pyc
